@@ -1,18 +1,18 @@
 package main
 
 import (
-	"os"
-
+	"github.com/0xlilnas/shopapp/src/initiliazers"
 	"github.com/gin-gonic/gin"
 )
 
+func init() {
+	initiliazers.LoadEnvVariables()
+	initiliazers.ConnectDB()
+}
+
 func main() {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8000"
-	}
 
 	router := gin.Default()
 
-	router.Run(":" + port)
+	router.Run()
 }
