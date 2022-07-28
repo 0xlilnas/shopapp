@@ -1,7 +1,18 @@
 package main
 
-import "fmt"
+import (
+	"os"
+
+	"github.com/gin-gonic/gin"
+)
 
 func main() {
-	fmt.Println("Hello world!")
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8000"
+	}
+
+	router := gin.Default()
+
+	router.Run(":" + port)
 }
