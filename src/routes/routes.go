@@ -11,5 +11,5 @@ func Setup(c *gin.Engine) {
 	//admin routes
 	admin := api.Group("admin")
 	admin.POST("/register", controllers.Register)
-	admin.POST("/login", controllers.Register)
+	admin.POST("/login", controllers.Login)
 }
