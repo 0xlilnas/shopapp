@@ -125,8 +125,14 @@ func Login(c *gin.Context) {
 
 func User(c *gin.Context) {
 	user, _ := c.Get("user")
-
 	c.JSON(http.StatusOK, gin.H{
 		"message": user,
+	})
+}
+
+func Logout(c *gin.Context) {
+	c.SetCookie("Authorization", "", -1, "", "", false, true)
+	c.JSON(http.StatusOK, gin.H{
+		"message": "User logout",
 	})
 }

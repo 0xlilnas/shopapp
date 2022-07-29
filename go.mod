@@ -2,10 +2,7 @@ module github.com/0xlilnas/shopapp
 
 go 1.18
 
-require (
-	github.com/rs/cors/wrapper/gin v0.0.0-20220619195839-da52b0701de5
-	gorm.io/gorm v1.23.8
-)
+require gorm.io/gorm v1.23.8
 
 require (
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
@@ -36,6 +33,7 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.2 // indirect
+	github.com/rs/cors/wrapper/gin v0.0.0-20220619195839-da52b0701de5
 	github.com/ugorji/go/codec v1.2.7 // indirect
 	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa
 	golang.org/x/net v0.0.0-20220728211354-c7608f3a8462 // indirect
