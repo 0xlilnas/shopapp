@@ -2,6 +2,7 @@ package routes
 
 import (
 	"github.com/0xlilnas/shopapp/src/controllers"
+	"github.com/0xlilnas/shopapp/src/middleware"
 	"github.com/gin-gonic/gin"
 )
 
@@ -12,4 +13,6 @@ func Setup(c *gin.Engine) {
 	admin := api.Group("admin")
 	admin.POST("/register", controllers.Register)
 	admin.POST("/login", controllers.Login)
+	admin.GET("/user", middleware.RequireAuth, controllers.User)
+	admin.POST("/logout", controllers.Logout)
 }
