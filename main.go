@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/0xlilnas/shopapp/src/initiliazers"
+	"github.com/0xlilnas/shopapp/src/models"
 	"github.com/0xlilnas/shopapp/src/routes"
 	"github.com/gin-gonic/gin"
 	cors "github.com/rs/cors/wrapper/gin"
@@ -9,14 +10,13 @@ import (
 
 func init() {
 	initiliazers.LoadEnvVariables()
-	initiliazers.ConnectDB()
-	initiliazers.SyncDatabase()
+	models.ConnectDataBase()
 }
 
 func main() {
 
 	router := gin.Default()
-
+	router.SetTrustedProxies([]string{"127.0.0.1"})
 	//router setup
 	routes.Setup(router)
 

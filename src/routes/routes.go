@@ -7,12 +7,12 @@ import (
 )
 
 func Setup(c *gin.Engine) {
-	api := c.Group("api")
 
-	//admin routes
-	admin := api.Group("admin")
-	admin.POST("/register", controllers.Register)
-	admin.POST("/login", controllers.Login)
-	admin.GET("/user", middleware.RequireAuth, controllers.User)
-	admin.POST("/logout", controllers.Logout)
+	public := c.Group("/api")
+	public.POST("/register", controllers.Register)
+	public.POST("/login", controllers.Login)
+
+	admin := c.Group("/api/admin")
+	admin.Use(middleware.JwtAuthMiddleware())
+	admin.GET("/user", controllers.User)
 }

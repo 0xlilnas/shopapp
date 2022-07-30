@@ -2,137 +2,99 @@ package controllers
 
 import (
 	"net/http"
-	"os"
-	"time"
 
-	"github.com/0xlilnas/shopapp/src/initiliazers"
 	"github.com/0xlilnas/shopapp/src/models"
+	"github.com/0xlilnas/shopapp/src/utils/token"
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v4"
-	"golang.org/x/crypto/bcrypt"
 )
 
+//RegisterInput
+type RegisterInput struct {
+	FirstName    string `json:"first_name" binding:"required"`
+	LastName     string `json:"last_name" binding:"required"`
+	Email        string `json:"email" binding:"required" gorm:"unique"`
+	Password     string `json:"password" binding:"required"`
+	IsAmbassador bool   `json:"-"`
+}
+
 func Register(c *gin.Context) {
-	var data map[string]string
+	var input RegisterInput
 
-	if c.Bind(&data) != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Failed to read body",
-		})
-
-		return
-	}
-
-	if data["password"] != data["confirm_password"] {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "password do not match!",
-		})
-
-		return
-	}
-
-	password, err := bcrypt.GenerateFromPassword([]byte(data["password"]), 12)
-
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Failed to hash password!",
-		})
-
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	user := models.User{
-		FirstName:    data["first_name"],
-		LastName:     data["last_name"],
-		Email:        data["email"],
-		Password:     string(password),
-		IsAmbassador: false,
+		FirstName: input.FirstName,
+		LastName:  input.LastName,
+		Email:     input.Email,
+		Password:  input.Password,
 	}
 
-	result := initiliazers.DB.Create(&user)
+	user.Prepare()
+	user.BeforeSave()
+	_, err := user.SaveUser()
 
-	if result.Error != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Failed to create user. User already existed!",
-		})
-
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusOK, gin.H{"message": "registration success"})
+}
+
+//LoginInput
+type LoginInput struct {
+	Email    string `json:"email" binding:"required" gorm:"unique"`
+	Password string `json:"password" binding:"required"`
 }
 
 func Login(c *gin.Context) {
-	var data map[string]string
+	var input LoginInput
 
-	if c.Bind(&data) != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Failed to read body",
-		})
-
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	var user models.User
-
-	initiliazers.DB.Where("email = ?", data["email"]).First(&user)
-
-	//check user existed
-	if user.ID == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid email or password!",
-		})
-
-		return
+	user := models.User{
+		Email:    input.Email,
+		Password: input.Password,
 	}
 
-	//compare password
-	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(data["password"]))
+	token, err := models.LoginCheck(user.Email, user.Password)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid email or password",
-		})
-
+		c.JSON(http.StatusBadRequest, gin.H{"error": "username or password is incorrect."})
 		return
 	}
+	c.JSON(http.StatusOK, gin.H{"token": token})
 
-	//jwt token
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub": user.ID,
-		"exp": time.Now().Add(time.Hour * 24 * 30).Unix(),
-	})
-
-	// Sign and get the complete encoded token as a string using the secret
-	tokenString, err := token.SignedString([]byte(os.Getenv("SECRET")))
-
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Failed to create token!",
-		})
-
-		return
-	}
-
-	//send it back
-	c.SetSameSite(http.SameSiteLaxMode)
-	c.SetCookie("Authorization", tokenString, 3600*24*30, "", "", false, true)
-
-	c.JSON(http.StatusOK, gin.H{
-		"message": "successfuly login",
-	})
 }
 
 func User(c *gin.Context) {
-	user, _ := c.Get("user")
-	c.JSON(http.StatusOK, gin.H{
-		"message": user,
-	})
+	user_id, err := token.ExtractTokenID(c)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	user, err := models.GetUserByID(user_id)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "success", "data": user})
 }
 
 func Logout(c *gin.Context) {
-	c.SetCookie("Authorization", "", -1, "", "", false, true)
-	c.JSON(http.StatusOK, gin.H{
-		"message": "User logout",
-	})
+
+}
+
+func UpdateInfo(c *gin.Context) {
+
 }

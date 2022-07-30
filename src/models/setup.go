@@ -1,4 +1,4 @@
-package initiliazers
+package models
 
 import (
 	"log"
@@ -10,7 +10,7 @@ import (
 
 var DB *gorm.DB
 
-func ConnectDB() {
+func ConnectDataBase() {
 	var err error
 	dsn := os.Getenv("DB")
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
@@ -18,4 +18,7 @@ func ConnectDB() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	DB.AutoMigrate(&User{})
+
 }
